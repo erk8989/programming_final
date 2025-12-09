@@ -218,7 +218,7 @@ transform_joinaggregate(TotalUsers='sum(Count)').\
             tooltip=[
                 alt.Tooltip("income_label:O", title="Income"),
                 alt.Tooltip("education:O", title="Education"),
-                alt.Tooltip("mean(sm_li_pct):Q", title="use %", format=",.2f"),
+                alt.Tooltip("mean(user_pct):Q", title="use %", format=",.2f"),
                 alt.Tooltip("count()", title="N")]).properties(
                     width=400,
                     height=300))
