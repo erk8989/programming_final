@@ -134,18 +134,17 @@ with tab1:
     # Plot overall LinkedIn use %
     ss["user"] = ss["sm_li"].map({0: 'No', 1: 'Yes'})
     # Calculate percentages
-    user_counts = ss["user"].value_counts(normalize=True).reset_index()
-    user_counts.columns = ['user', '%']
-    user_counts['%'] = user_counts['%'] * 100
-    st.markdown("""
-                ##### Overall LinkedIn Usage Rate (%)
-                """)
     st.altair_chart(
-        alt.Chart(user_counts).mark_bar().encode(
-            x=alt.X('user:N', sort='y', title='User', axis=alt.Axis(labelAngle=-45, labelOverlap=False)),
-            y=alt.Y('%:Q', title='Percentage (%)'),
+        alt.Chart(ss).transform_aggregate(Count='count()', groupby=['user']).\
+transform_joinaggregate(TotalUsers='sum(Count)').\
+    transform_calculate(PercentOfTotal='datum.Count / datum.TotalUsers * 100')\
+        .mark_bar().encode(
+            x = alt.X('user:N', sort='y', title='User', axis=alt.Axis(labelAngle=-45, labelOverlap=False)),
+            y=alt.Y('PercentOfTotal:Q', title='Percentage (%)'),
             color=alt.Color('user:N', legend=None, scale=alt.Scale(scheme='paired')),
-            tooltip=['user', alt.Tooltip('%', format='.2f')]))
+            tooltip=[
+                alt.Tooltip('user:N', title='User'),
+                alt.Tooltip('PercentOfTotal:Q', format='.2f', title='%')]))
     
     # Plot LinkedIn use % by Income Level
     ss["income_label"] = ss["income"].map(income_map)
@@ -210,10 +209,10 @@ with tab1:
                 ##### LinkedIn Usage Rate (%) by Income × Education Level
                 """)
     st.altair_chart(alt.Chart(ss).transform_calculate(
-        sm_li_pct = "datum.sm_li * 100").mark_rect().encode(
+        user_pct = "datum.sm_li * 100").mark_rect().encode(
             x=alt.X("income:O", title="Income Level"),
             y=alt.Y("educ2:O", title="Education Level"),
-            color=alt.Color("mean(sm_li_pct):Q",
+            color=alt.Color("mean(user_pct):Q",
                             scale=alt.Scale(scheme="purpleblue"),
                             title="Mean LinkedIn Use %"),
             tooltip=[
@@ -264,10 +263,8 @@ with tab1:
         tooltip=['gender', alt.Tooltip('sm_li', format='.2f', title='user %')]))
     
     # Plot LinkedIn use % by Age (Binned)
-    min_age = int(ss['age'].min())
-    max_age = int(ss['age'].max())
-    bins = list(range(min_age, max_age + 10, 10))
-    labels = [f"{i}-{i+9}" for i in bins[:-1]]
+    bins = [18, 28, 38, 48, 58, 68, 78, 88, 98]
+    labels = ['18-27', '28-37', '38-47', '48-57', '58-67', '68-77', '78-87', '88-97']
     ss['age_bin'] = pd.cut(ss['age'], bins=bins, labels=labels, right=False)
     age_binned_grouped = ss.groupby('age_bin', as_index=False)['sm_li'].mean()
     age_binned_grouped['sm_li'] = age_binned_grouped['sm_li'] * 100
