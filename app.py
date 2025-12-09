@@ -133,18 +133,17 @@ with tab1:
                 """)
     # Plot overall LinkedIn use %
     ss["user"] = ss["sm_li"].map({0: 'No', 1: 'Yes'})
-    # Calculate percentages
+    st.markdown("""
+                ##### Overall LinkedIn Usage (%)
+                """)
     st.altair_chart(
-        alt.Chart(ss).transform_aggregate(Count='count()', groupby=['user']).\
-transform_joinaggregate(TotalUsers='sum(Count)').\
-    transform_calculate(PercentOfTotal='datum.Count / datum.TotalUsers * 100')\
-        .mark_bar().encode(
-            x = alt.X('user:N', sort='y', title='User', axis=alt.Axis(labelAngle=-45, labelOverlap=False)),
-            y=alt.Y('PercentOfTotal:Q', title='Percentage (%)'),
-            color=alt.Color('user:N', legend=None, scale=alt.Scale(scheme='paired')),
-            tooltip=[
-                alt.Tooltip('user:N', title='User'),
-                alt.Tooltip('PercentOfTotal:Q', format='.2f', title='%')]))
+        alt.Chart(ss).transform_aggregate(Count='count()', groupby=['user']).transform_joinaggregate(TotalUsers='sum(Count)').\
+            transform_calculate(PercentOfTotal='datum.Count / datum.TotalUsers * 100')\
+                .mark_bar().encode(
+                    x = alt.X('user:N', sort='y', title='User', axis=alt.Axis(labelAngle=-45, labelOverlap=False)),
+                    y=alt.Y('PercentOfTotal:Q', title='Percentage (%)'),
+                    color=alt.Color('user:N', legend=None, scale=alt.Scale(scheme='paired')),
+                    tooltip=[alt.Tooltip('user:N', title='User'), alt.Tooltip('PercentOfTotal:Q', format='.2f', title='%')]))
     
     # Plot LinkedIn use % by Income Level
     ss["income_label"] = ss["income"].map(income_map)
